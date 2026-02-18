@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Регистрация - CrowdFunding{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-lg border-0 rounded-lg">
+            <div class="card-header bg-success text-white text-center py-4">
+                <h3 class="mb-0"><i class="bi bi-person-plus"></i> Регистрация</h3>
+                <span class="badge bg-warning text-dark mt-2">+ $50 000 на кошелёк</span>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="first_name" class="form-label fw-semibold">Имя</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" placeholder="Иван" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="last_name" class="form-label fw-semibold">Фамилия</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" placeholder="Иванов" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label fw-semibold">Email</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-envelope"></i></span>
+                            <input type="email" class="form-control" id="email" name="email" placeholder="example@mail.com" required>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label for="password" class="form-label fw-semibold">Пароль</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-lock"></i></span>
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Не менее 6 символов" required>
+                        </div>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="bi bi-person-check"></i> Зарегистрироваться
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer bg-light text-center py-3">
+                <span class="small">Уже есть аккаунт? <a href="{{ url_for('login') }}" class="text-primary fw-bold">Войти</a></span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

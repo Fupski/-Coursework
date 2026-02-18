@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}{{ project.title }} - CrowdFunding{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Левая колонка: информация о проекте -->
+    <div class="col-lg-8 mb-4">
+        <div class="card shadow border-0">
+            <div class="card-body p-4">
+                <!-- Изображение проекта -->
+                {% if project.image_url %}
+                    <img src="{{ project.image_url }}" class="img-fluid rounded mb-3" alt="{{ project.title }}">
+                {% else %}
+                    <div class="bg-light rounded d-flex align-items-center justify-content-center mb-3" style="height: 300px;">
+                        <i class="bi bi-image text-muted" style="font-size: 4rem;"></i>
+                    </div>
+                {% endif %}
+                
+                <h2 class="fw-bold">{{ project.title }}</h2>
+                <div class="d-flex align-items-center mb-3">
+                    <span class="category-badge category-{{ project.category|lower }} me-2">{{ project.category }}</span>
+                    <span class="text-muted">
+                        <i class="bi bi-person-circle"></i> {{ project.creator.first_name }} {{ project.creator.last_name }}
+                    </span>
+                </div>
+                
+                <h5 class="fw-semibold">О проекте</h5>
+                <p class="text-muted">{{ project.description|replace('\n', '<br>')|safe }}</p>
+                
+                <hr>
+                <h5 class="fw-semibold">История поддержки</h5>
+                <div class="d-flex justify-content-around text-center mb-3">
+                    <div>
+                        <span class="h4 fw-bold">{{ project.backers_count }}</span>
+                        <p class="text-muted">Поддержавших</p>
+                    </div>
+                    <div>
+                        <span class="h4 fw-bold">${{ "%.0f"|format(project.current_amount) }}</span>
+                        <p class="text-muted">Собрано из ${{ "%.0f"|format(project.goal_amount) }}</p>
+                    </div>
+                    <div>
+                        <span class="h4 fw-bold">{{ project.days_left }}</span>
+                        <p class="text-muted">Дней осталось</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Правая колонка: риск, поддержка, последние поддержки -->
+    <div class="col-lg-4">
+        <!-- Блок риска -->
+        <div class="card shadow border-0 mb-4">
+            <div class="card-header bg-{{ project.risk_level.color }} text-white">
+                <h5 class="mb-0"><i class="bi bi-shield-check"></i> Оценка риска</h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="display-2 fw-bold text-{{ project.risk_level.color }}">{{ project.risk_score }}</div>
+                <span class="badge bg-{{ project.risk_level.color }} fs-6 mb-3">{{ project.risk_level.level }} риск</span>
+                <div class="progress mb-2">
+                    <div class="progress-bar bg-{{ project.risk_level.color }}" style="width: {{ project.risk_score }}%;"></div>
+                </div>
+                <small class="text-muted">Интеллектуальная оценка на основе ML</small>
+            </div>
+        </div>
+
+        <!-- Блок поддержки -->
+        {% if session.user_id %}
+            {% if session.user_id != project.user_id %}
+                {% if project.days_left > 0 %}
+                    <div class="card shadow border-0">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0"><i class="bi bi-heart"></i> Поддержать проект</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="supportForm">
+                                <div class="mb-3">
+                                    <label for="amount" class="form-label fw-semibold">Сумма ($)</label>
+                                    <input type="number" class="form-control form-control-lg" id="amount" name="amount" 
+                                           min="1" step="1" placeholder="100" required>
+                                    <div class="form-text">Средства списываются с вашего кошелька</div>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100 btn-lg">
+                                    <i class="bi bi-heart-fill"></i> Поддержать
+                                </button>
+                            </form>
+                            <div id="supportResult" class="mt-3"></div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="alert alert-secondary">
+                        <i class="bi bi-calendar-x"></i> 
+                        <strong>Кампания завершена</strong><br>
+                        Сбор средств окончен. Спасибо всем, кто поддержал проект!
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> Это ваш проект. Вы не можете поддержать его сами.
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="card shadow border-0">
+                <div class="card-body text-center">
+                    <i class="bi bi-box-arrow-in-right display-4 text-muted"></i>
+                    <h5 class="mt-3">Хотите поддержать проект?</h5>
+                    <p class="text-muted">Войдите или зарегистрируйтесь</p>
+                    <a href="{{ url_for('login') }}" class="btn btn-primary">
+                        <i class="bi bi-box-arrow-in-right"></i> Войти
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Последние поддержки -->
+        <div class="card shadow border-0 mt-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-people"></i> Последние поддержки</h6>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for support in supports[:5] %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>
+                            <i class="bi bi-person-circle me-2"></i>
+                            {{ support.user.first_name }} {{ support.user.last_name[0] }}.
+                        </span>
+                        <span class="badge bg-primary rounded-pill">${{ "%.0f"|format(support.amount) }}</span>
+                    </li>
+                    {% else %}
+                    <li class="list-group-item text-center text-muted">Пока нет поддержек</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('supportForm')?.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    try {
+        const response = await fetch('/support/{{ project.id }}', {
+            method: 'POST',
+            body: formData
+        });
+        const result = await response.json();
+        const resultDiv = document.getElementById('supportResult');
+        if (result.success) {
+            resultDiv.innerHTML = `<div class="alert alert-success">${result.message}</div>`;
+            setTimeout(() => location.reload(), 2000);
+        } else {
+            resultDiv.innerHTML = `<div class="alert alert-danger">${result.message}</div>`;
+        }
+    } catch (error) {
+        document.getElementById('supportResult').innerHTML = `<div class="alert alert-danger">Ошибка соединения</div>`;
+    }
+});
+</script>
+{% endblock %}

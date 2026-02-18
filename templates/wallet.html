@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}Мой кошелёк - CrowdFunding{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card bg-primary text-white shadow-lg border-0">
+            <div class="card-body p-4">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h2 class="fw-bold"><i class="bi bi-wallet2"></i> Виртуальный кошелёк</h2>
+                        <p class="lead mb-0">Доступно для инвестиций</p>
+                    </div>
+                    <div class="col-md-4 text-md-end">
+                        <div class="display-3 fw-bold">${{ "%.2f"|format(user.wallet_balance) }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6 mb-3">
+        <div class="card h-100 shadow border-0">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-plus-circle"></i> Пополнить кошелёк</h5>
+            </div>
+            <div class="card-body">
+                <form id="fundForm">
+                    <div class="mb-3">
+                        <label for="amount" class="form-label fw-semibold">Сумма пополнения ($)</label>
+                        <input type="number" class="form-control form-control-lg" name="amount" min="1" step="1" placeholder="1000" required>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100 btn-lg">
+                        <i class="bi bi-credit-card"></i> Пополнить
+                    </button>
+                </form>
+                <div id="fundResult" class="mt-3"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <div class="card h-100 shadow border-0">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-graph-up"></i> Статистика</h5>
+            </div>
+            <div class="card-body">
+                {% set total_support = transactions | selectattr('transaction_type', 'equalto', 'support') | map(attribute='amount') | sum %}
+                {% set total_deposits = transactions | selectattr('transaction_type', 'equalto', 'deposit') | map(attribute='amount') | sum %}
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="display-6 text-success">+${{ "%.0f"|format(total_deposits) }}</div>
+                        <span class="text-muted">Всего пополнено</span>
+                    </div>
+                    <div class="col-6">
+                        <div class="display-6 text-primary">${{ "%.0f"|format(total_support) }}</div>
+                        <span class="text-muted">Поддержано проектов</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow border-0">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0"><i class="bi bi-clock-history"></i> История операций</h5>
+            </div>
+            <div class="card-body">
+                {% if transactions %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Дата</th>
+                                <th>Тип</th>
+                                <th>Проект</th>
+                                <th>Сумма</th>
+                                <th>Описание</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for txn in transactions %}
+                            <tr>
+                                <td>{{ txn.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                                <td>
+                                    {% if txn.transaction_type == 'support' %}
+                                        <span class="badge bg-primary">Поддержка</span>
+                                    {% elif txn.transaction_type == 'deposit' %}
+                                        <span class="badge bg-success">Пополнение</span>
+                                    {% elif txn.transaction_type == 'admin_deduct' %}
+                                        <span class="badge bg-warning text-dark">Списание</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ txn.transaction_type }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if txn.project %}
+                                        <a href="{{ url_for('project_detail', project_id=txn.project_id) }}" class="text-decoration-none">
+                                            {{ txn.project.title[:30] }}…
+                                        </a>
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if txn.transaction_type == 'support' or txn.transaction_type == 'admin_deduct' %}
+                                        <span class="text-danger">-${{ "%.2f"|format(txn.amount) }}</span>
+                                    {% else %}
+                                        <span class="text-success">+${{ "%.2f"|format(txn.amount) }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ txn.description or '' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-inboxes display-4 text-muted"></i>
+                    <p class="mt-3">История операций пуста</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('fundForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    try {
+        const response = await fetch('{{ url_for('add_funds') }}', {
+            method: 'POST',
+            body: formData
+        });
+        const result = await response.json();
+        const resultDiv = document.getElementById('fundResult');
+        if (result.success) {
+            resultDiv.innerHTML = `<div class="alert alert-success">${result.message}</div>`;
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            resultDiv.innerHTML = `<div class="alert alert-danger">${result.message}</div>`;
+        }
+    } catch (error) {
+        resultDiv.innerHTML = `<div class="alert alert-danger">Ошибка соединения</div>`;
+    }
+});
+</script>
+{% endblock %}

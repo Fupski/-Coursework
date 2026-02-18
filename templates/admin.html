@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Админ панель - CrowdFunding{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-semibold"><i class="bi bi-shield-check"></i> Админ панель</h2>
+    <form method="post" action="{{ url_for('recalculate_all_risks') }}">
+        <button type="submit" class="btn btn-warning btn-lg">
+            <i class="bi bi-arrow-repeat"></i> Пересчитать риски
+        </button>
+    </form>
+</div>
+
+<!-- Статистика -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card h-100 border-0">
+            <div class="card-body">
+                <h2 class="display-6 text-primary">{{ users|length }}</h2>
+                <p class="text-muted mb-0">Пользователей</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card h-100 border-0" style="border-left-color: var(--success);">
+            <div class="card-body">
+                <h2 class="display-6 text-success">{{ projects|length }}</h2>
+                <p class="text-muted mb-0">Проектов</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card h-100 border-0" style="border-left-color: var(--info);">
+            <div class="card-body">
+                <h2 class="display-6 text-info">{{ transactions|selectattr('transaction_type', 'equalto', 'support')|list|length }}</h2>
+                <p class="text-muted mb-0">Поддержек</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card h-100 border-0" style="border-left-color: var(--warning);">
+            <div class="card-body">
+                <h2 class="display-6 text-warning">${{ "%.0f"|format(transactions|selectattr('transaction_type', 'equalto', 'support')|map(attribute='amount')|sum) }}</h2>
+                <p class="text-muted mb-0">Собрано</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Пользователи -->
+<div class="card shadow border-0 mb-4">
+    <div class="card-header bg-dark text-white">
+        <h5 class="mb-0"><i class="bi bi-people"></i> Пользователи</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Имя</th>
+                        <th>Email</th>
+                        <th>Баланс</th>
+                        <th>Проектов</th>
+                        <th>Поддержек</th>
+                        <th>Дата</th>
+                        <th>Списать</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.id }}</td>
+                        <td>
+                            {{ user.first_name }} {{ user.last_name }}
+                            {% if user.email == 'test@example.com' %}
+                                <span class="badge bg-warning text-dark">Админ</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ user.email }}</td>
+                        <td><span class="fw-bold">${{ "%.2f"|format(user.wallet_balance) }}</span></td>
+                        <td>{{ user.projects|length }}</td>
+                        <td>{{ user.wallet_transactions|selectattr('transaction_type', 'equalto', 'support')|list|length }}</td>
+                        <td>{{ user.created_at.strftime('%d.%m.%Y') }}</td>
+                        <td>
+                            <form method="POST" action="{{ url_for('admin_deduct', user_id=user.id) }}" class="d-flex">
+                                <input type="number" name="amount" value="10" min="1" class="form-control form-control-sm" style="width:80px;">
+                                <button type="submit" class="btn btn-sm btn-danger ms-2" title="Списать">
+                                    <i class="bi bi-dash-circle"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Транзакции -->
+<div class="card shadow border-0">
+    <div class="card-header bg-dark text-white">
+        <h5 class="mb-0"><i class="bi bi-clock-history"></i> Последние транзакции</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Пользователь</th>
+                        <th>Проект</th>
+                        <th>Тип</th>
+                        <th>Сумма</th>
+                        <th>Дата</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for txn in transactions|sort(attribute='created_at', reverse=True) %}
+                    <tr>
+                        <td>{{ txn.id }}</td>
+                        <td>{{ txn.user.first_name }} {{ txn.user.last_name }}</td>
+                        <td>
+                            {% if txn.project %}
+                                <a href="{{ url_for('project_detail', project_id=txn.project.id) }}" class="text-decoration-none">
+                                    {{ txn.project.title[:30] }}…
+                                </a>
+                            {% else %}—{% endif %}
+                        </td>
+                        <td>
+                            {% if txn.transaction_type == 'support' %}
+                                <span class="badge bg-primary">Поддержка</span>
+                            {% elif txn.transaction_type == 'deposit' %}
+                                <span class="badge bg-success">Пополнение</span>
+                            {% elif txn.transaction_type == 'admin_deduct' %}
+                                <span class="badge bg-warning text-dark">Списание</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ txn.transaction_type }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if txn.transaction_type in ['support', 'admin_deduct'] %}
+                                <span class="text-danger">-${{ "%.2f"|format(txn.amount) }}</span>
+                            {% else %}
+                                <span class="text-success">+${{ "%.2f"|format(txn.amount) }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ txn.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

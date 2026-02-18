@@ -1,0 +1,7 @@
+Flask>=2.3
+Flask-SQLAlchemy
+Werkzeug
+scikit-learn>=1.0
+pandas
+numpy
+joblib

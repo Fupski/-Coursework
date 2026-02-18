@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Создать проект - CrowdFunding{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow border-0">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="bi bi-plus-circle"></i> Создать новый проект</h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="title" class="form-label fw-semibold">Название проекта</label>
+                        <input type="text" class="form-control form-control-lg" id="title" name="title" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="category" class="form-label fw-semibold">Категория</label>
+                        <select class="form-select form-select-lg" id="category" name="category">
+                            <option value="Технологии">Технологии</option>
+                            <option value="Образование">Образование</option>
+                            <option value="Здоровье">Здоровье</option>
+                            <option value="Игры">Игры</option>
+                            <option value="Другое">Другое</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="goal_amount" class="form-label fw-semibold">Цель финансирования ($)</label>
+                        <input type="number" class="form-control form-control-lg" id="goal_amount" name="goal_amount" min="1000" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="duration" class="form-label fw-semibold">Длительность кампании (дни)</label>
+                        <input type="number" class="form-control form-control-lg" id="duration" name="duration" 
+                            min="1" max="90" value="30" required>
+                        <div class="form-text">Укажите, сколько дней будет длиться сбор средств. Обычно 30–45 дней.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="image" class="form-label fw-semibold">Изображение проекта</label>
+                        <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                        <div class="form-text">Рекомендуемый размер: 1200x800px. Максимум 16 МБ.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label fw-semibold">Полное описание проекта</label>
+                        <textarea class="form-control" id="description" name="description" rows="8" required></textarea>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('index') }}" class="btn btn-secondary btn-lg px-4">Отмена</a>
+                        <button type="submit" class="btn btn-primary btn-lg px-5">
+                            <i class="bi bi-check-circle"></i> Создать
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card shadow border-0 mb-4">
+            <div class="card-header bg-warning text-dark">
+                <h6 class="mb-0 fw-bold"><i class="bi bi-lightbulb"></i> Советы для низкого риск-скора</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Опишите опыт команды</li>
+                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Расскажите про прототип</li>
+                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Укажите технологии</li>
+                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Добавьте реальные отзывы</li>
+                    <li class="mb-2"><i class="bi bi-x-circle-fill text-danger me-2"></i> Избегайте слов "возможно", "планируем"</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card shadow border-0">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0"><i class="bi bi-shield-check"></i> Как работает оценка риска?</h6>
+            </div>
+            <div class="card-body">
+                <p class="small">Наша ML-модель анализирует текст, сумму сбора и другие параметры, сравнивая с тысячами похожих проектов. Чем подробнее и правдоподобнее описание, тем выше ваш риск-скор (меньше риск).</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

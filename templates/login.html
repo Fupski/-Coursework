@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Вход - CrowdFunding{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-lg border-0 rounded-lg">
+            <div class="card-header bg-primary text-white text-center py-4">
+                <h3 class="mb-0"><i class="bi bi-box-arrow-in-right"></i> Вход в систему</h3>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="email" class="form-label fw-semibold">Email</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-envelope"></i></span>
+                            <input type="email" class="form-control" id="email" name="email" placeholder="example@mail.com" required>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label for="password" class="form-label fw-semibold">Пароль</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-lock"></i></span>
+                            <input type="password" class="form-control" id="password" name="password" placeholder="••••••••" required>
+                        </div>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-box-arrow-in-right"></i> Войти
+                        </button>
+                    </div>
+                </form>
+                
+                <hr class="my-4">
+                <div class="text-center small">
+                    <p class="text-muted mb-2">Тестовые аккаунты:</p>
+                    <div class="row">
+                        <div class="col-6">
+                            <span class="badge bg-secondary">test@example.com</span><br>
+                            <span class="badge bg-secondary">password</span>
+                        </div>
+                        <div class="col-6">
+                            <span class="badge bg-secondary">investor@example.com</span><br>
+                            <span class="badge bg-secondary">password</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-light text-center py-3">
+                <span class="small">Нет аккаунта? <a href="{{ url_for('register') }}" class="text-primary fw-bold">Зарегистрироваться</a></span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
